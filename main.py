@@ -9,6 +9,10 @@ from routes import users, auth
 from routes import users, auth, products
 from routes import users, auth, products, variants
 from routes import users, auth, products, variants, orders
+from models.cart import Cart
+from models.cart_item import CartItem
+from routes import users, auth, products, variants, orders, cart
+
 
 # Luo kaikki taulut
 Base.metadata.create_all(bind=engine)
@@ -19,6 +23,7 @@ app.include_router(auth.router)
 app.include_router(products.router)
 app.include_router(variants.router)
 app.include_router(orders.router)
+app.include_router(cart.router)
 
 
 @app.get("/")

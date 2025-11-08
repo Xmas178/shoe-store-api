@@ -32,3 +32,45 @@ def login(
     )
 
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.post("/register")
+def register(user_data: dict, db: Session = Depends(get_db)):
+    """Rekisteröi uusi käyttäjä"""
+    from auth.password import hash_password
+    from routes.schemas import UserRegister
+
+    # Validoi data
+    try:
+        validated_data = UserRegister(**user_data)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+    # Tarkista onko käyttäjä jo olemassa
+    existing_user = db.query(User).filter(User.email == validated_data.email).first()
+
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User with this email already exists",
+        )
+
+    # Luo uusi käyttäjä
+    hashed_password = hash_password(validated_data.password)
+    new_user = User(
+        name=validated_data.name,
+        email=validated_data.email,
+        hashed_password=hashed_password,
+        role="customer",
+    )
+
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return {
+        "id": new_user.id,
+        "name": new_user.name,
+        "email": new_user.email,
+        "role": new_user.role,
+    }

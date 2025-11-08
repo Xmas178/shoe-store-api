@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 from datetime import datetime
+from pydantic import BaseModel, ConfigDict
 
 
 # USER SCHEMAS
@@ -96,3 +97,38 @@ class OrderResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# Cart schemas
+class CartItemCreate(BaseModel):
+    variant_id: int
+    quantity: int = 1
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CartItemResponse(BaseModel):
+    id: int
+    variant_id: int
+    quantity: int
+    variant: VariantResponse  # Näyttää variantin tiedot
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CartResponse(BaseModel):
+    id: int
+    user_id: int
+    items: List[CartItemResponse]
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UserRegister(BaseModel):
+    name: str
+    email: str
+    password: str
+
+    model_config = ConfigDict(from_attributes=True)

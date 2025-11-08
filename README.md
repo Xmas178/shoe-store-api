@@ -1,125 +1,165 @@
 # Shoe Store API
 
-Kattava backend-API kenkäkaupalle. Sisältää käyttäjähallinnan, tuotteiden hallinnan, variantit (koot/värit), tilaukset ja admin-toiminnot.
+A comprehensive REST API for an e-commerce shoe store built with FastAPI, SQLAlchemy, and PostgreSQL.
 
-## Teknologiat
+## Features
 
-- **FastAPI** - Moderni Python web framework
-- **SQLAlchemy** - ORM tietokantaoperaatioille
-- **SQLite** - Tietokanta (vaihdettavissa PostgreSQL:ään)
-- **JWT** - Token-pohjainen autentikointi
-- **Bcrypt** - Salasanojen hashays
-- **Pydantic** - Data validointi
+- **User Authentication**: JWT-based authentication with role-based access control (customer/admin)
+- **Product Management**: Full CRUD operations for products with variants (sizes, colors, stock)
+- **Shopping Cart**: Add, update, and remove items from cart
+- **Order Management**: Checkout process with inventory tracking and order history
+- **Admin Controls**: Product and order management for administrators
 
-## Ominaisuudet
+## Tech Stack
 
-### Käyttäjähallinta
-- ✅ Rekisteröinti
-- ✅ Kirjautuminen (JWT token)
-- ✅ Käyttäjäroolit (customer/admin)
-- ✅ Salasanojen turvallinen tallentaminen (bcrypt)
+- **Framework**: FastAPI
+- **Database**: PostgreSQL
+- **ORM**: SQLAlchemy
+- **Authentication**: JWT (JSON Web Tokens)
+- **Password Hashing**: bcrypt
 
-### Tuotteet
-- ✅ Tuotteiden lisääminen (admin)
-- ✅ Tuotteiden listaus
-- ✅ Variantit (koko, väri, hinta, varastosaldo)
+## Project Structure
+```
+shoe-store-api/
+├── auth/               # Authentication logic (JWT, password hashing)
+├── database/           # Database configuration and connection
+├── models/             # SQLAlchemy database models
+├── routes/             # API endpoints and schemas
+├── main.py             # Application entry point
+├── requirements.txt    # Python dependencies
+└── .env               # Environment variables (not in git)
+```
 
-### Tilaukset
-- ✅ Tilausten tekeminen
-- ✅ Varastosaldon automaattinen vähentäminen
-- ✅ Hintojen tallentaminen tilaushetkellä
-- ✅ Tilausten statusten hallinta (admin)
-- ✅ Omien tilausten näkeminen
+## Installation
 
-### Admin-toiminnot
-- ✅ Kaikkien tilausten näkeminen
-- ✅ Tilausten statusten päivittäminen
-- ✅ Tuotteiden ja varianttien hallinta
-
-## Asennus
-
-### 1. Kloonaa repositorio
+1. **Clone the repository**
 ```bash
 git clone https://github.com/Xmas178/shoe-store-api.git
 cd shoe-store-api
 ```
 
-### 2. Luo virtuaaliympäristö
+2. **Create virtual environment**
 ```bash
 python3 -m venv venv
-source venv/bin/activate  # Linux/Mac
-# tai
-venv\Scripts\activate  # Windows
+source venv/bin/activate
 ```
 
-### 3. Asenna riippuvuudet
+3. **Install dependencies**
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Käynnistä sovellus
+4. **Set up PostgreSQL**
+```bash
+sudo service postgresql start
+sudo -u postgres psql
+```
+
+In PostgreSQL shell:
+```sql
+CREATE USER sami WITH PASSWORD 'your_password';
+CREATE DATABASE shoe_store_db OWNER sami;
+GRANT ALL PRIVILEGES ON DATABASE shoe_store_db TO sami;
+\q
+```
+
+5. **Configure environment variables**
+
+Create `.env` file:
+```
+DATABASE_URL=postgresql://sami:your_password@localhost/shoe_store_db
+SECRET_KEY=your-secret-key-here
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+```
+
+Generate a secure secret key:
+```bash
+openssl rand -hex 32
+```
+
+6. **Run the application**
 ```bash
 uvicorn main:app --reload
 ```
 
-API käynnistyy osoitteessa: `http://127.0.0.1:8000`
+API will be available at `http://127.0.0.1:8000`
 
-## API Dokumentaatio
+## API Documentation
 
-Interaktiivinen API-dokumentaatio: `http://127.0.0.1:8000/docs`
+Once running, visit:
+- **Swagger UI**: http://127.0.0.1:8000/docs
+- **ReDoc**: http://127.0.0.1:8000/redoc
 
-## Endpointit
+## API Endpoints
 
-### Autentikointi
-- `POST /auth/login` - Kirjautuminen
-- `POST /users/register` - Rekisteröityminen
-- `GET /users/me` - Oma profiili (vaatii tokenin)
-
-### Tuotteet
-- `GET /products/` - Listaa tuotteet
-- `POST /products/` - Lisää tuote (admin)
-
-### Variantit
-- `GET /variants/product/{product_id}` - Tuotteen variantit
-- `POST /variants/` - Lisää variantti (admin)
-
-### Tilaukset
-- `POST /orders/` - Tee tilaus (vaatii tokenin)
-- `GET /orders/my-orders` - Omat tilaukset (vaatii tokenin)
-- `GET /orders/all` - Kaikki tilaukset (admin)
-- `PATCH /orders/{order_id}/status` - Päivitä status (admin)
-
-## Tietokantarakenne
-
-### Users
-- id, name, email, hashed_password, role
+### Authentication
+- `POST /auth/register` - Register new user
+- `POST /auth/login` - Login and receive JWT token
 
 ### Products
-- id, name, brand, description, base_price, image_url
+- `GET /products` - List all products
+- `GET /products/{id}` - Get single product
+- `POST /products` - Create product (admin only)
+- `PUT /products/{id}` - Update product (admin only)
+- `DELETE /products/{id}` - Delete product (admin only)
 
 ### Variants
-- id, product_id, size, color, price, stock
+- `POST /variants` - Add product variant (admin only)
+- `GET /variants/product/{product_id}` - Get variants for product
+
+### Shopping Cart
+- `GET /cart` - Get user's cart
+- `POST /cart/items` - Add item to cart
+- `PUT /cart/items/{id}` - Update item quantity
+- `DELETE /cart/items/{id}` - Remove item from cart
+- `DELETE /cart` - Clear cart
 
 ### Orders
-- id, user_id, total_price, status, created_at
+- `POST /orders/checkout` - Create order from cart
+- `GET /orders/my-orders` - Get user's order history
+- `GET /orders/{id}` - Get single order
+- `GET /orders/all` - Get all orders (admin only)
+- `PATCH /orders/{id}/status` - Update order status (admin only)
 
-### OrderItems
-- id, order_id, variant_id, quantity, price_at_purchase
+## Database Models
 
-## Tulevaisuuden kehitysideat
+- **User**: User accounts with roles (customer/admin)
+- **Product**: Shoe products with name, description, brand, base price
+- **Variant**: Product variants (size, color, stock, price)
+- **Cart**: User shopping carts
+- **CartItem**: Items in shopping cart
+- **Order**: Customer orders with status tracking
+- **OrderItem**: Individual items in orders
 
-- [ ] PostgreSQL tuki
-- [ ] Payment gateway integraatio
-- [ ] Sähköposti-notifikaatiot
-- [ ] Tuotteiden hakutoiminnot
-- [ ] Arvostelut ja kommentit
-- [ ] Frontend (React)
-- [ ] Deployment (Railway/Render)
+## Authentication
 
-## Tekijä
+Protected endpoints require JWT token in Authorization header:
+```
+Authorization: Bearer <your_token_here>
+```
+
+## Development
+
+Built as part of a portfolio project to demonstrate:
+- RESTful API design
+- Database modeling and relationships
+- Authentication and authorization
+- Role-based access control
+- E-commerce business logic
+
+## Future Enhancements
+
+- Product categories and filtering
+- Search functionality
+- Payment integration
+- Image upload for products
+- Email notifications
+
+## Author
 
 Xmas178 - [GitHub](https://github.com/Xmas178)
 
-## Lisenssi
+## License
 
-MIT
+This project is for portfolio purposes.
