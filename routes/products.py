@@ -6,8 +6,10 @@ from models.product import Product
 from models.user import User
 from routes.schemas import ProductCreate, ProductResponse
 from auth.permissions import require_admin
+from sqlalchemy import text
 
-router = APIRouter(prefix="/products", tags=["products"])
+
+router = APIRouter(tags=["products"])
 
 
 @router.post("/", response_model=ProductResponse)
@@ -29,6 +31,16 @@ def get_products(db: Session = Depends(get_db)):
     """Hae kaikki tuotteet (julkinen)"""
     products = db.query(Product).all()
     return products
+
+# VULNERABLE: SQL Injection - Direct string interpolation
+@router.get("/search")
+def vulnerable_search(query: str, db: Session = Depends(get_db)):
+    # DANGEROUS: Never do this!
+    sql = f"SELECT * FROM products WHERE name LIKE '%{query}%'"
+    result = db.execute(text(sql))
+    products = result.fetchall()
+    return {"products": [dict(p._mapping) for p in products]}
+
 
 
 @router.get("/{product_id}", response_model=ProductResponse)

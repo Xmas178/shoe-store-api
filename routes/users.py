@@ -32,3 +32,16 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
 def get_me(current_user: User = Depends(get_current_user)):
     """Palauttaa kirjautuneen käyttäjän tiedot"""
     return current_user
+
+# VULNERABLE: IDOR - Any user can access other users' data
+@router.get("/users/{user_id}")
+def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {
+        "id": user.id,
+        "name": user.name,
+        "email": user.email,
+        "role": user.role
+    }

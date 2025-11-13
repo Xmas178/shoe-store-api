@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
 from models.user import User
 from models.product import Product
@@ -18,9 +19,19 @@ from routes import users, auth, products, variants, orders, cart
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Shoe Store API")
+
+# CORS middleware - LISÄÄ TÄMÄ
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(users.router)
 app.include_router(auth.router)
-app.include_router(products.router)
+app.include_router(products.router, prefix="/products", tags=["products"])
 app.include_router(variants.router)
 app.include_router(orders.router)
 app.include_router(cart.router)
