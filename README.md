@@ -1,95 +1,106 @@
 # Shoe Store API
 
-A comprehensive REST API for an e-commerce shoe store built with FastAPI, SQLAlchemy, and PostgreSQL.
+RESTful API backend for an e-commerce shoe store application. Built with FastAPI and SQLAlchemy.
 
 ## Features
 
-- **User Authentication**: JWT-based authentication with role-based access control (customer/admin)
-- **Product Management**: Full CRUD operations for products with variants (sizes, colors, stock)
-- **Shopping Cart**: Add, update, and remove items from cart
-- **Order Management**: Checkout process with inventory tracking and order history
-- **Admin Controls**: Product and order management for administrators
+- JWT-based authentication and authorization
+- Role-based access control (admin/customer)
+- Product catalog management
+- Product variants (sizes, colors, stock)
+- Shopping cart functionality
+- Order processing
+- SQLite database with SQLAlchemy ORM
 
 ## Tech Stack
 
-- **Framework**: FastAPI
-- **Database**: PostgreSQL
-- **ORM**: SQLAlchemy
-- **Authentication**: JWT (JSON Web Tokens)
-- **Password Hashing**: bcrypt
-
-## Project Structure
-```
-shoe-store-api/
-├── auth/               # Authentication logic (JWT, password hashing)
-├── database/           # Database configuration and connection
-├── models/             # SQLAlchemy database models
-├── routes/             # API endpoints and schemas
-├── main.py             # Application entry point
-├── requirements.txt    # Python dependencies
-└── .env               # Environment variables (not in git)
-```
+- FastAPI
+- SQLAlchemy ORM
+- SQLite
+- Pydantic for data validation
+- JWT tokens for authentication
+- Bcrypt for password hashing
+- CORS middleware for frontend integration
 
 ## Installation
 
-1. **Clone the repository**
+### Prerequisites
+- Python 3.8 or higher
+- pip
+
+### Setup
 ```bash
-git clone https://github.com/Xmas178/shoe-store-api.git
+# Clone the repository
+git clone https://github.com/yourusername/shoe-store-api.git
 cd shoe-store-api
-```
 
-2. **Create virtual environment**
-```bash
-python3 -m venv venv
-source venv/bin/activate
-```
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-3. **Install dependencies**
-```bash
+# Install dependencies
 pip install -r requirements.txt
-```
 
-4. **Set up PostgreSQL**
-```bash
-sudo service postgresql start
-sudo -u postgres psql
-```
-
-In PostgreSQL shell:
-```sql
-CREATE USER sami WITH PASSWORD 'your_password';
-CREATE DATABASE shoe_store_db OWNER sami;
-GRANT ALL PRIVILEGES ON DATABASE shoe_store_db TO sami;
-\q
-```
-
-5. **Configure environment variables**
-
-Create `.env` file:
-```
-DATABASE_URL=postgresql://sami:your_password@localhost/shoe_store_db
-SECRET_KEY=your-secret-key-here
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-```
-
-Generate a secure secret key:
-```bash
-openssl rand -hex 32
-```
-
-6. **Run the application**
-```bash
+# Run the server
 uvicorn main:app --reload
 ```
 
-API will be available at `http://127.0.0.1:8000`
+The API will be available at `http://localhost:8000`
 
 ## API Documentation
 
-Once running, visit:
-- **Swagger UI**: http://127.0.0.1:8000/docs
-- **ReDoc**: http://127.0.0.1:8000/redoc
+Interactive API documentation is automatically generated and available at:
+- Swagger UI: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
+
+## Database
+
+The application uses SQLite database (`shoe_store.db`). The database is created automatically on first run.
+
+### Models
+
+**User**
+- id (Primary Key)
+- name
+- email (Unique)
+- hashed_password
+- role (admin/customer)
+
+**Product**
+- id (Primary Key)
+- name
+- brand
+- description
+- base_price
+- image_url
+- category
+
+**Variant**
+- id (Primary Key)
+- product_id (Foreign Key)
+- size (EU format)
+- color
+- price
+- stock
+
+**Cart**
+- id (Primary Key)
+- user_id (Foreign Key)
+- created_at
+
+**CartItem**
+- id (Primary Key)
+- cart_id (Foreign Key)
+- variant_id (Foreign Key)
+- quantity
+
+**Order**
+- id (Primary Key)
+- user_id (Foreign Key)
+- total_amount
+- status
+- shipping_address
+- created_at
 
 ## API Endpoints
 
@@ -101,65 +112,97 @@ Once running, visit:
 - `GET /products` - List all products
 - `GET /products/{id}` - Get single product
 - `POST /products` - Create product (admin only)
-- `PUT /products/{id}` - Update product (admin only)
 - `DELETE /products/{id}` - Delete product (admin only)
 
 ### Variants
-- `POST /variants` - Add product variant (admin only)
 - `GET /variants/product/{product_id}` - Get variants for product
+- `POST /variants` - Create variant (admin only)
+- `DELETE /variants/{id}` - Delete variant (admin only)
 
 ### Shopping Cart
 - `GET /cart` - Get user's cart
 - `POST /cart/items` - Add item to cart
 - `PUT /cart/items/{id}` - Update item quantity
 - `DELETE /cart/items/{id}` - Remove item from cart
-- `DELETE /cart` - Clear cart
 
 ### Orders
-- `POST /orders/checkout` - Create order from cart
-- `GET /orders/my-orders` - Get user's order history
-- `GET /orders/{id}` - Get single order
-- `GET /orders/all` - Get all orders (admin only)
-- `PATCH /orders/{id}/status` - Update order status (admin only)
-
-## Database Models
-
-- **User**: User accounts with roles (customer/admin)
-- **Product**: Shoe products with name, description, brand, base price
-- **Variant**: Product variants (size, color, stock, price)
-- **Cart**: User shopping carts
-- **CartItem**: Items in shopping cart
-- **Order**: Customer orders with status tracking
-- **OrderItem**: Individual items in orders
+- `GET /orders` - Get user's orders
+- `POST /orders` - Create order from cart
 
 ## Authentication
 
-Protected endpoints require JWT token in Authorization header:
+The API uses JWT tokens for authentication. Include the token in the Authorization header:
 ```
 Authorization: Bearer <your_token_here>
 ```
 
+### Admin Access
+
+To grant admin privileges to a user, update the database directly:
+```bash
+sqlite3 shoe_store.db
+UPDATE users SET role = 'admin' WHERE email = 'user@example.com';
+```
+
+## CORS Configuration
+
+CORS is configured to allow requests from `http://localhost:3000` (React frontend). Update CORS settings in `main.py` for production deployment.
+
+## Environment Variables
+
+Currently using default configuration. For production, consider adding:
+- `SECRET_KEY` - JWT signing key
+- `DATABASE_URL` - Database connection string
+- `ALLOWED_ORIGINS` - CORS allowed origins
+
+## Error Handling
+
+The API returns appropriate HTTP status codes:
+- 200: Success
+- 201: Created
+- 400: Bad Request
+- 401: Unauthorized
+- 403: Forbidden
+- 404: Not Found
+- 500: Internal Server Error
+
 ## Development
 
-Built as part of a portfolio project to demonstrate:
-- RESTful API design
-- Database modeling and relationships
-- Authentication and authorization
-- Role-based access control
-- E-commerce business logic
+Run with auto-reload during development:
+```bash
+uvicorn main:app --reload
+```
+
+## Testing
+
+API endpoints can be tested using:
+- Swagger UI at `/docs`
+- Thunder Client (VS Code extension)
+- Postman
+- curl commands
+
+## Security Considerations
+
+- Passwords are hashed using bcrypt
+- JWT tokens expire after 30 days
+- Admin routes are protected with role verification
+- SQL injection protection via SQLAlchemy ORM
 
 ## Future Enhancements
 
-- Product categories and filtering
-- Search functionality
-- Payment integration
-- Image upload for products
-- Email notifications
-
-## Author
-
-Xmas178 - [GitHub](https://github.com/Xmas178)
+- PostgreSQL migration for production
+- Rate limiting
+- Email verification
+- Password reset functionality
+- Payment processing integration
+- Order status tracking
+- Logging and monitoring
+- Unit and integration tests
 
 ## License
 
 This project is for portfolio purposes.
+
+## Author
+
+Xmas178 - Dev
