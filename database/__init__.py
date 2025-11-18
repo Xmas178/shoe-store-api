@@ -2,6 +2,7 @@ import os
 from sqlalchemy import create_engine, event
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -14,12 +15,21 @@ DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./shoe_store.db")
 if os.getenv("RENDER"):
     DATABASE_URL = "sqlite:///:memory:"
 
-# Create engine
-connect_args = {}
-if DATABASE_URL.startswith("sqlite"):
-    connect_args = {"check_same_thread": False}
-
-engine = create_engine(DATABASE_URL, connect_args=connect_args)
+# Create engine with special settings for in-memory SQLite
+if DATABASE_URL == "sqlite:///:memory:":
+    # Use StaticPool to keep the same connection alive
+    engine = create_engine(
+        DATABASE_URL,
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,  # Critical for in-memory SQLite!
+    )
+else:
+    engine = create_engine(
+        DATABASE_URL,
+        connect_args=(
+            {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+        ),
+    )
 
 # Enable foreign keys for SQLite
 if DATABASE_URL.startswith("sqlite"):
