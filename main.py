@@ -10,9 +10,14 @@ from models.order_item import OrderItem
 from models.cart import Cart
 from models.cart_item import CartItem
 from routes import users, auth, products, variants, orders, cart
+from init_data import init_demo_data
 
 # Create all tables
 Base.metadata.create_all(bind=engine)
+
+# Initialize demo data for in-memory database
+if os.getenv("RENDER"):
+    init_demo_data()
 
 app = FastAPI(title="Shoe Store API")
 
