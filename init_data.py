@@ -1,4 +1,4 @@
-from database import SessionLocal
+from database import SessionLocal, engine, Base
 from models.user import User
 from models.product import Product
 from models.variant import Variant
@@ -7,6 +7,10 @@ from auth.password import hash_password
 
 def init_demo_data():
     """Initialize demo data for in-memory database"""
+
+    # Create all tables first (critical for in-memory database!)
+    Base.metadata.create_all(bind=engine)
+
     db = SessionLocal()
 
     try:
@@ -17,7 +21,7 @@ def init_demo_data():
 
         # Create admin user
         admin = User(
-            name="Admin User",  # ← Muutettu username → name
+            name="Admin User",
             email="admin@example.com",
             hashed_password=hash_password("admin123"),
             role="admin",
