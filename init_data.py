@@ -2,7 +2,7 @@ from database import SessionLocal
 from models.user import User
 from models.product import Product
 from models.variant import Variant
-from auth.password import get_password_hash
+from auth.password import hash_password
 
 
 def init_demo_data():
@@ -19,7 +19,7 @@ def init_demo_data():
         admin = User(
             email="admin@example.com",
             username="admin",
-            hashed_password=get_password_hash("admin123"),
+            hashed_password=hash_password("admin123"),
             role="admin",
         )
         db.add(admin)
