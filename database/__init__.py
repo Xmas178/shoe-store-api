@@ -1,24 +1,30 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+import os
 
-# SQLite database
-SQLALCHEMY_DATABASE_URL = "sqlite:///./shoe_store.db"
+# Use in-memory SQLite for deployment (Render.com), file-based for local
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./shoe_store.db")
 
-# Create engine (connection to database)
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},  # Required for SQLite
-)
+# For Render.com deployment, use in-memory SQLite
+if os.getenv("RENDER"):
+    DATABASE_URL = "sqlite:///:memory:"
 
-# Session (used for communicating with database)
+# Create engine
+connect_args = {}
+if DATABASE_URL.startswith("sqlite"):
+    connect_args = {"check_same_thread": False}
+
+engine = create_engine(DATABASE_URL, connect_args=connect_args)
+
+# Session
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Base class for all models
 Base = declarative_base()
 
 
-# Helper function that provides database connection
+# Helper function
 def get_db():
     db = SessionLocal()
     try:
