@@ -3,11 +3,14 @@ from sqlalchemy.orm import Session
 from typing import List
 from database import get_db
 from models.product import Product
+from models.variant import Variant
 from models.user import User
 from routes.schemas import ProductCreate, ProductResponse
 from auth.permissions import require_admin
+from sqlalchemy import text
 
-router = APIRouter(prefix="/products", tags=["products"])
+
+router = APIRouter(tags=["products"])
 
 
 @router.post("/", response_model=ProductResponse)
@@ -29,6 +32,16 @@ def get_products(db: Session = Depends(get_db)):
     """Hae kaikki tuotteet (julkinen)"""
     products = db.query(Product).all()
     return products
+
+
+# VULNERABLE: SQL Injection - Direct string interpolation
+@router.get("/search")
+def vulnerable_search(query: str, db: Session = Depends(get_db)):
+    # DANGEROUS: Never do this!
+    sql = f"SELECT * FROM products WHERE name LIKE '%{query}%'"
+    result = db.execute(text(sql))
+    products = result.fetchall()
+    return {"products": [dict(p._mapping) for p in products]}
 
 
 @router.get("/{product_id}", response_model=ProductResponse)
@@ -72,6 +85,10 @@ def delete_product(
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
+    # Poista ensin kaikki tuotteen variantit
+    db.query(Variant).filter(Variant.product_id == product_id).delete()
+
+    # Poista tuote
     db.delete(product)
     db.commit()
     return {"message": f"Product {product_id} deleted successfully"}

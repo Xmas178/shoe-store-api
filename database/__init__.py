@@ -1,24 +1,32 @@
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from dotenv import load_dotenv
 
-# SQLite tietokanta
-SQLALCHEMY_DATABASE_URL = "sqlite:///./shoe_store.db"
+# Load environment variables from .env file
+load_dotenv()
 
-# Luo engine (yhteys tietokantaan)
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},  # Tarvitaan SQLite:lle
-)
+# Get database URL from environment variable
+# Falls back to SQLite if DATABASE_URL is not set
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./shoe_store.db")
 
-# Sessio (käytetään tietokannan kanssa kommunikointiin)
+# PostgreSQL doesn't need check_same_thread, but SQLite does
+connect_args = {}
+if SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
+    connect_args = {"check_same_thread": False}
+
+# Create engine (connection to database)
+engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args=connect_args)
+
+# Session (used for communicating with database)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Base luokka kaikille malleille
+# Base class for all models
 Base = declarative_base()
 
 
-# Apufunktio joka antaa tietokantayhteyden
+# Helper function that provides database connection
 def get_db():
     db = SessionLocal()
     try:
