@@ -45,5 +45,6 @@ app.include_router(cart.router)
 
 
 @app.get("/")
+@app.head("/")  # Add HEAD method support for health checks
 def root():
     return {"message": "Welcome to Shoe Store API"}
