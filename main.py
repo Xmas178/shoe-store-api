@@ -10,25 +10,31 @@ from models.order_item import OrderItem
 from models.cart import Cart
 from models.cart_item import CartItem
 from routes import users, auth, products, variants, orders, cart
-from init_data import init_demo_data
-
-# Create all tables
-Base.metadata.create_all(bind=engine)
-
-# Initialize demo data for in-memory database
-if os.getenv("RENDER"):
-    init_demo_data()
 
 app = FastAPI(title="Shoe Store API")
 
 # CORS middleware - Allow all origins for demo purposes
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins (for demo)
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize database and demo data on startup"""
+    # Create all tables
+    Base.metadata.create_all(bind=engine)
+
+    # Initialize demo data if on Render
+    if os.getenv("RENDER"):
+        from init_data import init_demo_data
+
+        init_demo_data()
+
 
 app.include_router(users.router)
 app.include_router(auth.router)
