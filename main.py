@@ -16,16 +16,10 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Shoe Store API")
 
-# CORS middleware - Allow frontend origins
-origins = [
-    "http://localhost:3000",  # Local development
-    "https://shoe-store-frontend.vercel.app",  # Production (päivitä tämä oikeaksi)
-    "https://*.vercel.app",  # All Vercel deployments
-]
-
+# CORS middleware - Allow all origins for demo purposes
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],  # Allow all origins (for demo)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
