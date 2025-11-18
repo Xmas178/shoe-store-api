@@ -17,8 +17,8 @@ def init_demo_data():
 
         # Create admin user
         admin = User(
+            name="Admin User",  # ← Muutettu username → name
             email="admin@example.com",
-            username="admin",
             hashed_password=hash_password("admin123"),
             role="admin",
         )
