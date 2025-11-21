@@ -1,5 +1,12 @@
 # Shoe Store API
 
+## Demo Video
+Watch the full-stack demo: [View on YouTube](https://youtu.be/TC2oMAiqvFo)
+
+## Related Repositories
+- Frontend: [shoe-store-frontend](https://github.com/Xmas178/shoe-store-frontend)
+
+
 RESTful API backend for an e-commerce shoe store application. Built with FastAPI and SQLAlchemy.
 
 ## Features
